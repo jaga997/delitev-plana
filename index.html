@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Moj prodajni plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<style>
+:root{
+  --text:#18181B; --ink3:#52525B; --paper:#F6F6F7; --line:#E7E7EA; --line2:#F0F0F2;
+  --muted:#6B6B74; --faint:#A1A1AA; --red:#DA291C; --red-d:#B92216; --red-soft:#FDF1F0;
+  --work:#18181B; --closed:#F4F4F5; --ok:#15803D;
+  --sh:0 1px 2px rgba(24,24,27,.04),0 1px 1px rgba(24,24,27,.02);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Geist','Inter',system-ui,sans-serif;background:var(--paper);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;font-feature-settings:"tnum" 1}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+button{cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 15px;font-weight:500;box-shadow:var(--sh)}
+button:hover{background:var(--paper)}
+button.primary{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 1px 2px rgba(218,41,28,.25)}
+button.primary:hover{background:var(--red-d)}
+button.quiet{border-color:transparent;background:transparent;box-shadow:none;color:var(--muted)}
+button.quiet:hover{color:var(--text);background:var(--paper)}
+button.sm{padding:5px 11px;font-size:13px}
+button:disabled{opacity:.6;cursor:default}
+input,select{border:1px solid var(--line);border-radius:9px;padding:9px 11px;background:#fff}
+input:focus,select:focus{outline:0;border-color:#A1A1AA;box-shadow:0 0 0 3px rgba(24,24,27,.06)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;letter-spacing:-.01em}
+.mark{display:inline-flex;align-items:flex-end;justify-content:center;gap:2px;width:26px;height:26px;border-radius:7px;background:var(--red);padding:0 0 7px}
+.mark i{display:block;width:3px;background:#fff;border-radius:1px}
+.mark i:nth-child(1){height:5px}.mark i:nth-child(2){height:8px}.mark i:nth-child(3){height:11px}
+.warn{color:var(--red);font-size:13px;margin-top:10px}
+.lead{color:var(--muted);margin:0}
+
+/* prijava */
+.gate{min-height:100vh;display:grid;place-items:center;padding:24px}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh)}
+.gate .card{width:100%;max-width:400px;padding:32px;box-shadow:0 16px 40px -12px rgba(24,24,27,.12)}
+.gate .brand{margin-bottom:28px}
+.gate h1{font-size:24px;font-weight:600;letter-spacing:-.03em;margin:0 0 6px}
+.gate .lead{margin-bottom:20px}
+.gate input{width:100%;margin-bottom:12px;font-size:15px}
+.gate button.primary{width:100%;padding:11px}
+.lbl{display:block;font-size:12.5px;font-weight:500;color:var(--muted);margin-bottom:5px}
+#code{letter-spacing:.12em;font-size:17px}
+.keep{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin:2px 0 16px;cursor:pointer}
+.keep input{width:auto;margin:0;accent-color:var(--red)}
+
+/* aplikacija */
+.top{background:#fff;border-bottom:1px solid var(--line)}
+.top-in{max-width:880px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;gap:12px}
+.top-in .brand{flex:1}
+.who{font-size:13px;color:var(--muted)}
+.wrap{max-width:880px;margin:0 auto;padding:28px 24px 64px}
+.months{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.months button{border-radius:999px;padding:6px 14px;font-size:13px}
+.months button.on{background:var(--text);border-color:var(--text);color:#fff}
+.plan{padding:32px;margin-bottom:20px}
+.p-top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.p-sub{font-size:13.5px;color:var(--muted)}
+.p-name{font-size:38px;font-weight:600;letter-spacing:-.04em;line-height:1.05;margin-top:4px}
+.p-m{font-size:17px;font-weight:600;text-align:right;letter-spacing:-.01em}
+.p-m small{display:block;font-size:13px;font-weight:400;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line2);border-bottom:1px solid var(--line2);margin:24px 0}
+.kpis div{padding:16px 16px 16px 0;margin-right:16px;border-right:1px solid var(--line2)}
+.kpis div:last-child{border-right:0;margin-right:0}
+.kpis span{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
+.kpis b{font-size:32px;font-weight:600;letter-spacing:-.035em}
+h2{font-size:15px;font-weight:600;margin:0 0 10px;letter-spacing:-.01em}
+table.seg{width:100%;border-collapse:collapse;margin-bottom:26px}
+.seg th{font-size:12.5px;color:var(--muted);font-weight:500;text-align:right;padding:0 8px 10px;border-bottom:1px solid var(--line)}
+.seg td{text-align:right;padding:14px 8px;border-bottom:1px solid var(--line2);white-space:nowrap}
+.seg th:first-child,.seg td:first-child{text-align:left;padding-left:0}
+.seg td:first-child b{font-weight:600}
+.seg .u{color:var(--faint);font-size:12.5px;margin-left:4px}
+.seg .big{font-size:22px;font-weight:600;letter-spacing:-.025em}
+.cal{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.cal th,.cal td{text-align:center;padding:0;position:relative}
+.cal th{font-size:10px;color:var(--faint);font-weight:500;padding:7px 0 5px;border-bottom:1px solid var(--line)}
+.cal th b{display:block;color:var(--text);font-size:12px;font-weight:500}
+.cal td{height:34px}
+.cal .x{background:var(--closed)}
+.cal th.x b{color:var(--faint)}
+.cal td.f::before,.cal td.h::before{content:"";position:absolute;inset:11px 1.5px;border-radius:4px}
+.cal td.f::before{background:var(--work)}
+.cal td.h::before{background:linear-gradient(90deg,var(--work) 50%,#E4E4E7 50%)}
+.calwrap{overflow-x:auto}
+.cal-min{min-width:620px}
+.legend{display:flex;gap:16px;font-size:12.5px;color:var(--muted);margin-top:10px;flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+.p-actions{display:flex;justify-content:space-between;align-items:center;margin-top:24px;gap:12px;flex-wrap:wrap}
+.stamp{font-size:12.5px;color:var(--faint)}
+.empty{padding:40px 32px;text-align:center}
+.empty h1{font-size:22px;font-weight:600;letter-spacing:-.025em;margin:0 0 8px}
+.empty .lead{max-width:46ch;margin:0 auto}
+@media (max-width:640px){
+  .plan{padding:22px 18px}
+  .p-name{font-size:30px}
+  .kpis b{font-size:24px}
+  .seg .big{font-size:18px}
+  .p-m{text-align:left}
+  .top-in .who{display:none}
+}
+@media print{
+  @page{size:A4 portrait;margin:12mm}
+  body{background:#fff}
+  .top,.months,.p-actions,.noprint{display:none!important}
+  .wrap{padding:0;max-width:none}
+  .plan{border:0;box-shadow:none;padding:0;margin:0;page-break-after:always}
+  .plan.hide-print{display:none}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .cal-min{min-width:0}
+}
+</style>
+</head>
+<body>
+<div id="gate" class="gate" style="display:none">
+  <div class="card">
+    <div class="brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span><span>Moj prodajni plan</span></div>
+    <form id="loginForm">
+      <h1>Prijava</h1>
+      <p class="lead">Vpiši svoj e-naslov in osebno kodo, ki si jo dobil od vodje.</p>
+      <label class="lbl" for="email">E-naslov</label>
+      <input id="email" type="email" autocomplete="email" placeholder="ime.priimek@podjetje.si" required>
+      <label class="lbl" for="code">Osebna koda</label>
+      <input id="code" inputmode="numeric" autocomplete="one-time-code" placeholder="123 456" required>
+      <label class="keep"><input type="checkbox" id="keep" checked> Ostani prijavljen na tej napravi</label>
+      <button id="sendBtn" class="primary" type="submit">Prijava</button>
+    </form>
+    <div id="msg" class="warn"></div>
+  </div>
+</div>
+
+<div id="app" style="display:none">
+  <header class="top"><div class="top-in">
+    <div class="brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span><span>Moj prodajni plan</span></div>
+    <span class="who" id="me"></span>
+    <button id="logout" class="quiet sm">Odjava</button>
+  </div></header>
+  <main class="wrap">
+    <div class="months" id="months"></div>
+    <div id="plans"></div>
+  </main>
+</div>
+
+<div id="setup" style="display:none" class="gate">
+  <div class="card empty">
+    <h1>Aplikacija še ni nastavljena</h1>
+    <p class="lead">Skrbnik mora v datoteko config.js vpisati podatke projekta Supabase.</p>
+  </div>
+</div>
+
+<script>
+const CFG=window.DP_CONFIG||{};
+const READY=!!(window.supabase&&CFG.SUPABASE_URL&&/^https:\/\/.+\.supabase\.co/.test(CFG.SUPABASE_URL)&&CFG.SUPABASE_ANON_KEY&&!/VPIŠI/.test(CFG.SUPABASE_ANON_KEY));
+const sb=READY?window.supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_ANON_KEY):null;
+const $=id=>document.getElementById(id);
+const DOW=['Pon','Tor','Sre','Čet','Pet','Sob','Ned'];
+const eur=new Intl.NumberFormat('sl-SI',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+const num=(v,d=1)=>new Intl.NumberFormat('sl-SI',{maximumFractionDigits:d}).format(v);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=(seg,v)=>seg.unit==='€'?eur.format(v):num(v,0);
+const fmtPer=(seg,v)=>v==null?'–':(seg.unit==='€'?eur.format(v):num(v,1));
+const monthName=m=>{const[y,mo]=m.split('-').map(Number);return new Date(y,mo-1,1).toLocaleDateString('sl-SI',{month:'long',year:'numeric'});};
+const dow=(m,d)=>{const[y,mo]=m.split('-').map(Number);return (new Date(y,mo-1,d).getDay()+6)%7;};
+let PLANS=[], CUR=null;
+
+function view(v){$('gate').style.display=v==='gate'?'':'none';$('app').style.display=v==='app'?'':'none';$('setup').style.display=v==='setup'?'':'none';}
+
+const KEY='dp.agent';
+function stored(){try{return JSON.parse(localStorage.getItem(KEY)||sessionStorage.getItem(KEY)||'null');}catch(e){return null;}}
+function remember(c,keep){try{const v=JSON.stringify(c);(keep?localStorage:sessionStorage).setItem(KEY,v);}catch(e){}}
+function forget(){try{localStorage.removeItem(KEY);sessionStorage.removeItem(KEY);}catch(e){}}
+const ERR={bad:'E-naslov ali koda ni pravilna.',locked:'Preveč napačnih poskusov. Poskusi znova čez 15 minut.'};
+
+async function init(){
+  if(!READY){view('setup');return;}
+  const c=stored();
+  if(c){const ok=await login(c.email,c.code,true);if(ok)return;forget();}
+  view('gate');
+}
+async function login(email,code,silent){
+  const {data,error}=await sb.rpc('agent_plans',{p_email:email,p_code:String(code).replace(/\D/g,'')});
+  if(error){if(!silent)$('msg').textContent='Prijava ni uspela: '+error.message;return false;}
+  if(!data||!data.ok){if(!silent)$('msg').textContent=ERR[data&&data.error]||'Prijava ni uspela.';return false;}
+  $('me').textContent=email.trim().toLowerCase();
+  PLANS=data.plans||[];
+  view('app'); show(); return true;
+}
+function show(){
+  const months=[...new Set(PLANS.map(p=>p.month))];
+  if(!months.length){
+    $('months').innerHTML='';
+    $('plans').innerHTML=`<div class="card empty"><h1>Plan še ni objavljen</h1><p class="lead">Za ${esc($('me').textContent)} še ni objavljenega plana. Ko ga vodja objavi, ga boš videl tukaj.</p></div>`;
+    return;
+  }
+  const now=new Date(), cur=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  if(!CUR||!months.includes(CUR))CUR=months.includes(cur)?cur:months[0];
+  $('months').innerHTML=months.length>1?months.map(m=>`<button data-m="${m}" class="${m===CUR?'on':''}">${monthName(m)}</button>`).join(''):'';
+  render();
+}
+function calendar(p){
+  const n=p.days_in_month||31, cl=new Set(p.closed||[]), cells=p.cells||{};
+  let h='<div class="calwrap"><table class="cal cal-min"><thead><tr>';
+  for(let d=1;d<=n;d++)h+=`<th class="${cl.has(d)?'x':''}"><b>${d}</b>${DOW[dow(p.month,d)].slice(0,2)}</th>`;
+  h+='</tr></thead><tbody><tr>';
+  for(let d=1;d<=n;d++){const v=+cells[d]||0;h+=`<td class="${cl.has(d)?'x':v>=1?'f':v>0?'h':''}"></td>`;}
+  return h+'</tr></tbody></table></div>';
+}
+function render(){
+  const list=PLANS.filter(p=>p.month===CUR);
+  $('plans').innerHTML=list.map((p,i)=>`
+    <article class="card plan" data-i="${i}">
+      <div class="p-top">
+        <div><div class="p-sub">${esc(p.store)}${p.store_place?', '+esc(p.store_place):''}</div><div class="p-name">${esc(p.agent_name)}</div></div>
+        <div class="p-m">${monthName(p.month)}<small>Osebni prodajni plan</small></div>
+      </div>
+      <div class="kpis">
+        <div><span>Delovni dnevi</span><b>${num(p.days)}</b></div>
+        <div><span>Ure</span><b>${num(p.hours)}</b></div>
+        <div><span>Delež plana trgovine</span><b>${num((p.share||0)*100)} %</b></div>
+      </div>
+      <h2>Moj plan</h2>
+      <table class="seg"><thead><tr><th>Segment</th><th>Moj plan</th><th>Na delovni dan</th></tr></thead><tbody>
+        ${(p.segments||[]).map(s=>`<tr><td><b>${esc(s.name)}</b><span class="u">${s.unit==='€'?'EUR':'kosov'}</span></td><td class="big">${fmt(s,s.value)}</td><td>${fmtPer(s,s.per_day)}</td></tr>`).join('')}
+      </tbody></table>
+      <h2>Delovni dnevi</h2>
+      ${calendar(p)}
+      <div class="legend"><span><i class="sw" style="background:var(--work)"></i>Delam</span><span><i class="sw" style="background:linear-gradient(90deg,var(--work) 50%,#E4E4E7 50%)"></i>Pol dneva</span><span><i class="sw" style="background:var(--closed);box-shadow:inset 0 0 0 1px var(--line)"></i>Trgovina zaprta</span></div>
+      <div class="p-actions">
+        <span class="stamp">Objavljeno ${new Date(p.published_at).toLocaleString('sl-SI',{day:'numeric',month:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span>
+        <button class="primary" data-pdf="${i}">Prenesi PDF</button>
+      </div>
+    </article>`).join('');
+}
+function printOne(i){
+  const cards=[...document.querySelectorAll('.plan')];
+  cards.forEach((c,k)=>c.classList.toggle('hide-print',k!==i));
+  const p=PLANS.filter(x=>x.month===CUR)[i], old=document.title;
+  document.title=`Plan_${String(p.agent_name).trim().replace(/[^\wčšžČŠŽćđĆĐ-]+/g,'_')}_${p.month}`;
+  const done=()=>{document.title=old;cards.forEach(c=>c.classList.remove('hide-print'));window.removeEventListener('afterprint',done);};
+  window.addEventListener('afterprint',done);
+  setTimeout(()=>window.print(),30);
+}
+
+$('loginForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const email=$('email').value.trim(), code=$('code').value.replace(/\D/g,''); $('msg').textContent='';
+  if(code.length!==6){$('msg').textContent='Koda ima 6 števk.';return;}
+  $('sendBtn').disabled=true;
+  const ok=await login(email,code,false);
+  $('sendBtn').disabled=false;
+  if(ok)remember({email,code},$('keep').checked);
+});
+$('logout').onclick=()=>{forget();PLANS=[];CUR=null;$('code').value='';view('gate');};
+$('months').onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;CUR=b.dataset.m;[...$('months').children].forEach(x=>x.classList.toggle('on',x===b));render();};
+$('plans').onclick=e=>{const b=e.target.closest('[data-pdf]');if(b)printOne(+b.dataset.pdf);};
+init();
+</script>
+</body>
+</html>
